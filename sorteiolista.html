@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sorteador de Tarefas por Pesos</title>
+  <style>
+    :root {
+      --bg-color: #121212;
+      --card-bg: #1e1e1e;
+      --border-color: #333333;
+      --text-main: #e0e0e0;
+      --text-muted: #888888;
+      --accent-color: #3b82f6;
+      --accent-hover: #2563eb;
+      --draw-highlight: #60a5fa;
+      --bar-bg: rgba(59, 130, 246, 0.25);
+      --danger-color: #ef4444;
+      --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: var(--font-family);
+      padding: 20px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background-color: #2a2a2a;
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+
+    button:hover {
+      background-color: #383838;
+      border-color: #555555;
+    }
+
+    button.primary {
+      background-color: var(--accent-color);
+      color: #ffffff;
+      border-color: var(--accent-color);
+    }
+
+    button.primary:hover {
+      background-color: var(--accent-hover);
+      border-color: var(--accent-hover);
+    }
+
+    button.danger {
+      color: var(--danger-color);
+    }
+
+    button.danger:hover {
+      background-color: rgba(239, 68, 68, 0.1);
+    }
+
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      align-items: start;
+    }
+
+    .module-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .module-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .module-header input.module-title {
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      font-size: 1.1rem;
+      font-weight: 600;
+      flex: 1;
+      min-width: 0;
+      outline: none;
+      border-bottom: 1px dashed transparent;
+    }
+
+    .module-header input.module-title:focus {
+      border-bottom-color: var(--accent-color);
+    }
+
+    .table-container {
+      width: 100%;
+      overflow-x: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      table-layout: auto;
+    }
+
+    th, td {
+      padding: 6px 2px;
+      text-align: center;
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: middle;
+    }
+
+    th {
+      font-weight: 600;
+      color: var(--text-muted);
+      background-color: rgba(0,0,0,0.2);
+    }
+
+    th.col-item, td.col-item {
+      text-align: left;
+      width: auto;
+    }
+
+    .weight-col-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      width: 100%;
+    }
+
+    .weight-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      width: 100%;
+    }
+
+    .weight-title-row input {
+      width: 100%;
+      min-width: 0;
+      text-align: center;
+      padding: 4px 2px;
+    }
+
+    .btn-icon {
+      padding: 2px 4px;
+      font-size: 0.7rem;
+      line-height: 1;
+    }
+
+    .collapsed-col-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 0;
+    }
+
+    .collapsed-col-header .col-name-label {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      max-height: 80px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .collapsed-cell {
+      background-color: rgba(0, 0, 0, 0.15);
+      color: var(--text-muted);
+      font-size: 0.7rem;
+    }
+
+    .draw-box {
+      background-color: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 3px 2px;
+      width: 100%;
+      font-size: 0.7rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      margin-top: 2px;
+    }
+
+    .draw-box .res-num {
+      color: var(--text-muted);
+      font-size: 0.65rem;
+    }
+
+    .draw-box .res-val {
+      color: var(--draw-highlight);
+      font-weight: 700;
+      font-size: 0.8rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+      display: block;
+    }
+
+    input[type="text"], input[type="number"] {
+      background-color: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 4px 6px;
+      border-radius: 4px;
+      width: 100%;
+      font-size: 0.8rem;
+      outline: none;
+      box-sizing: border-box;
+    }
+
+    input[type="number"] {
+      text-align: center;
+      -moz-appearance: textfield;
+    }
+
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    input:focus {
+      border-color: var(--accent-color);
+    }
+
+    .weight-cell {
+      position: relative;
+      z-index: 1;
+      overflow: hidden;
+      padding: 4px 2px;
+    }
+
+    .weight-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      background-color: var(--bar-bg);
+      z-index: -1;
+      transition: width 0.2s ease;
+      border-right: 2px solid var(--accent-color);
+    }
+
+    .chance-label {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      display: block;
+      margin-top: 2px;
+      line-height: 1;
+    }
+
+    .cum-val {
+      color: var(--text-muted);
+      font-weight: 500;
+      font-size: 0.75rem;
+      padding: 0 4px;
+    }
+
+    .selected-row {
+      background-color: rgba(96, 165, 250, 0.12);
+    }
+
+    .add-btn-container {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4px;
+      gap: 8px;
+    }
+
+    .btn-sm {
+      padding: 2px 5px;
+      font-size: 0.75rem;
+      white-space: nowrap;
+    }
+
+    .btn-draw {
+      width: 100%;
+      padding: 3px 0;
+      font-size: 0.75rem;
+    }
+
+    #importFile {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Sorteador por Pesos</h1>
+    <div class="toolbar">
+      <button onclick="addModule()">+ Novo Módulo</button>
+      <button onclick="exportData()">Exportar Backup</button>
+      <button onclick="document.getElementById('importFile').click()">Importar Backup</button>
+      <input type="file" id="importFile" accept=".json" onchange="importData(event)">
+    </div>
+  </header>
+
+  <div class="modules-grid" id="modulesGrid"></div>
+
+  <script>
+    let state = {
+      modules: [
+        {
+          id: 'm1',
+          title: 'Atividades',
+          weightCols: [
+            { id: 'w1', name: 'Geral', collapsed: false, lastDraw: { num: '-', item: '-', selectedItemId: null } }
+          ],
+          items: [
+            { id: 'i1', name: 'concursos', weights: { w1: 2 } },
+            { id: 'i2', name: 'financeiro', weights: { w1: 1 } },
+            { id: 'i3', name: '3d printer', weights: { w1: 1 } },
+            { id: 'i4', name: 'quarto', weights: { w1: 3 } },
+            { id: 'i5', name: 'esteira', weights: { w1: 2 } }
+          ]
+        },
+        {
+          id: 'm2',
+          title: 'Tempo (min)',
+          weightCols: [
+            { id: 'w1', name: 'Dia', collapsed: false, lastDraw: { num: '-', item: '-', selectedItemId: null } },
+            { id: 'w2', name: 'Noite', collapsed: false, lastDraw: { num: '-', item: '-', selectedItemId: null } }
+          ],
+          items: [
+            { id: 'i1', name: '15 min', weights: { w1: 5, w2: 2 } },
+            { id: 'i2', name: '30 min', weights: { w1: 10, w2: 5 } },
+            { id: 'i3', name: '45 min', weights: { w1: 3, w2: 8 } }
+          ]
+        }
+      ]
+    };
+
+    function generateId() {
+      return '_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    function render() {
+      const container = document.getElementById('modulesGrid');
+      container.innerHTML = '';
+
+      state.modules.forEach(mod => {
+        const card = document.createElement('div');
+        card.className = 'module-card';
+
+        let html = `
+          <div class="module-header">
+            <input type="text" class="module-title" value="${escapeHtml(mod.title)}" onchange="updateModuleTitle('${mod.id}', this.value)" placeholder="Nome do Módulo">
+            <button class="danger btn-sm" onclick="deleteModule('${mod.id}')">Excluir</button>
+          </div>
+        `;
+
+        const cumValues = {};
+        const totalWeights = {};
+
+        mod.weightCols.forEach(col => {
+          cumValues[col.id] = {};
+          let currentCum = 0;
+          mod.items.forEach(item => {
+            const w = Number(item.weights[col.id]) || 0;
+            currentCum += w;
+            cumValues[col.id][item.id] = currentCum;
+          });
+          totalWeights[col.id] = currentCum;
+        });
+
+        html += `
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th class="col-item" style="vertical-align: bottom; padding-bottom: 8px;">Atividades</th>
+                  ${mod.weightCols.map(col => {
+                    if (col.collapsed) {
+                      return `
+                        <th style="width: 28px; vertical-align: top;">
+                          <div class="collapsed-col-header">
+                            <button class="btn-icon" title="Expandir coluna" onclick="toggleColCollapse('${mod.id}', '${col.id}')">👁️</button>
+                            <span class="col-name-label">${escapeHtml(col.name)}</span>
+                          </div>
+                        </th>
+                        <th style="width: 20px; vertical-align: bottom; padding-bottom: 8px;">C</th>
+                      `;
+                    }
+                    return `
+                      <th>
+                        <div class="weight-col-header">
+                          <div class="weight-title-row">
+                            <button class="btn-icon" title="Recolher coluna" onclick="toggleColCollapse('${mod.id}', '${col.id}')">🙈</button>
+                            <input type="text" value="${escapeHtml(col.name)}" onchange="updateColName('${mod.id}', '${col.id}', this.value)">
+                            <button class="danger btn-sm" title="Excluir coluna" onclick="deleteWeightCol('${mod.id}', '${col.id}')">&times;</button>
+                          </div>
+                          <button class="primary btn-draw" onclick="draw('${mod.id}', '${col.id}')">Sortear</button>
+                          <div class="draw-box">
+                            <span class="res-num">Nº: ${col.lastDraw?.num ?? '-'}</span>
+                            <span class="res-val" title="${escapeHtml(col.lastDraw?.item ?? '-')}">${escapeHtml(col.lastDraw?.item ?? '-')}</span>
+                          </div>
+                        </div>
+                      </th>
+                      <th style="vertical-align: bottom; padding-bottom: 8px; width: 30px;">Cum</th>
+                    `;
+                  }).join('')}
+                  <th style="width: 20px;"></th>
+                </tr>
+              </thead>
+              <tbody>
+                ${mod.items.map(item => {
+                  return `
+                    <tr>
+                      <td class="col-item">
+                        <input type="text" value="${escapeHtml(item.name)}" onchange="updateItemName('${mod.id}', '${item.id}', this.value)" placeholder="Item...">
+                      </td>
+                      ${mod.weightCols.map(col => {
+                        const isSelected = col.lastDraw?.selectedItemId === item.id;
+                        const weight = Number(item.weights[col.id]) || 0;
+                        const total = totalWeights[col.id];
+                        const percentage = total > 0 ? ((weight / total) * 100).toFixed(1) : '0.0';
+
+                        if (col.collapsed) {
+                          return `
+                            <td class="collapsed-cell ${isSelected ? 'selected-row' : ''}" title="Peso: ${weight} (${percentage}%)">
+                              ${weight}
+                            </td>
+                            <td class="cum-val collapsed-cell ${isSelected ? 'selected-row' : ''}">${cumValues[col.id][item.id]}</td>
+                          `;
+                        }
+
+                        return `
+                          <td class="weight-cell ${isSelected ? 'selected-row' : ''}">
+                            <div class="weight-bar" style="width: ${percentage}%;"></div>
+                            <input type="number" min="0" value="${weight}" onchange="updateWeight('${mod.id}', '${item.id}', '${col.id}', this.value)">
+                            <span class="chance-label">${percentage}%</span>
+                          </td>
+                          <td class="cum-val ${isSelected ? 'selected-row' : ''}">${cumValues[col.id][item.id]}</td>
+                        `;
+                      }).join('')}
+                      <td>
+                        <button class="danger btn-sm" onclick="deleteItem('${mod.id}', '${item.id}')">&times;</button>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+          <div class="add-btn-container">
+            <button class="btn-sm" onclick="addItem('${mod.id}')">+ Item</button>
+            <button class="btn-sm" onclick="addWeightCol('${mod.id}')">+ Coluna Peso</button>
+          </div>
+        `;
+
+        card.innerHTML = html;
+        container.appendChild(card);
+      });
+    }
+
+    function toggleColCollapse(modId, colId) {
+      const mod = state.modules.find(m => m.id === modId);
+      if (mod) {
+        const col = mod.weightCols.find(c => c.id === colId);
+        if (col) {
+          col.collapsed = !col.collapsed;
+          render();
+        }
+      }
+    }
+
+    function updateModuleTitle(modId, val) {
+      const mod = state.modules.find(m => m.id === modId);
+      if (mod) mod.title = val;
+    }
+
+    function addModule() {
+      const newModId = generateId();
+      const newColId = generateId();
+      state.modules.push({
+        id: newModId,
+        title: 'Novo Módulo',
+        weightCols: [{ id: newColId, name: 'Peso', collapsed: false, lastDraw: { num: '-', item: '-', selectedItemId: null } }],
+        items: [{ id: generateId(), name: 'Exemplo', weights: { [newColId]: 1 } }]
+      });
+      render();
+    }
+
+    function deleteModule(modId) {
+      if (confirm('Deseja excluir este módulo?')) {
+        state.modules = state.modules.filter(m => m.id !== modId);
+        render();
+      }
+    }
+
+    function addItem(modId) {
+      const mod = state.modules.find(m => m.id === modId);
+      if (mod) {
+        const newItem = { id: generateId(), name: '', weights: {} };
+        mod.weightCols.forEach(col => newItem.weights[col.id] = 1);
+        mod.items.push(newItem);
+        render();
+      }
+    }
+
+    function deleteItem(modId, itemId) {
+      const mod = state.modules.find(m => m.id === modId);
+      if (mod) {
+        mod.items = mod.items.filter(i => i.id !== itemId);
+        render();
+      }
+    }
+
+    function updateItemName(modId, itemId, val) {
+      const mod = state.modules.find(m => m.id === modId);
+      if (mod) {
+        const item = mod.items.find(i => i.id === itemId);
+        if (item) item.name = val;
+      }
+    }
+
+    function addWeightCol(modId) {
+      const mod = state.modules.find(m => m.id === modId);
+      if (mod) {
+        const newColId = generateId();
+        mod.weightCols.push({
+          id: newColId,
+          name: 'Peso ' + (mod.weightCols.length + 1),
+          collapsed: false,
+          lastDraw: { num: '-', item: '-', selectedItemId: null }
+        });
+        mod.items.forEach(i => i.weights[newColId] = 0);
+        render();
+      }
+    }
+
+    function deleteWeightCol(modId, colId) {
+      const mod = state.modules.find(m => m.id === modId);
+      if (mod) {
+        if (mod.weightCols.length <= 1) {
+          alert('O módulo precisa ter ao menos uma coluna de peso.');
+          return;
+        }
+        mod.weightCols = mod.weightCols.filter(c => c.id !== colId);
+        mod.items.forEach(i => delete i.weights[colId]);
+        render();
+      }
+    }
+
+    function updateColName(modId, colId, val) {
+      const mod = state.modules.find(m => m.id === modId);
+      if (mod) {
+        const col = mod.weightCols.find(c => c.id === colId);
+        if (col) col.name = val;
+      }
+    }
+
+    function updateWeight(modId, itemId, colId, val) {
+      const mod = state.modules.find(m => m.id === modId);
+      if (mod) {
+        const item = mod.items.find(i => i.id === itemId);
+        if (item) item.weights[colId] = Number(val) || 0;
+        render();
+      }
+    }
+
+    function draw(modId, colId) {
+      const mod = state.modules.find(m => m.id === modId);
+      if (!mod || mod.items.length === 0) return;
+
+      const col = mod.weightCols.find(c => c.id === colId);
+      if (!col) return;
+
+      let cumulative = 0;
+      const ranges = [];
+
+      mod.items.forEach(item => {
+        const w = Number(item.weights[colId]) || 0;
+        if (w > 0) {
+          const start = cumulative + 1;
+          cumulative += w;
+          ranges.push({ item, start, end: cumulative });
+        }
+      });
+
+      if (cumulative === 0) {
+        alert('Adicione ao menos um peso maior que zero nesta coluna para sortear.');
+        return;
+      }
+
+      const drawnNum = Math.floor(Math.random() * cumulative) + 1;
+      const matched = ranges.find(r => drawnNum >= r.start && drawnNum <= r.end);
+
+      if (matched) {
+        col.lastDraw = {
+          num: drawnNum,
+          item: matched.item.name || '(Sem nome)',
+          selectedItemId: matched.item.id
+        };
+      }
+      render();
+    }
+
+    function exportData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `sorteador_backup_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const importedState = JSON.parse(e.target.result);
+          if (importedState && importedState.modules) {
+            state = importedState;
+            render();
+          } else {
+            alert('Formato de arquivo inválido.');
+          }
+        } catch (err) {
+          alert('Erro ao ler o arquivo de backup.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function escapeHtml(str) {
+      return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    render();
+  </script>
+</body>
+</html>

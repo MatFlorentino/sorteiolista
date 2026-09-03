@@ -1,0 +1,2 @@
+# sorteiolista
+sorteador

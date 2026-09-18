@@ -46,7 +46,6 @@
     h1 {
       font-size: 1.25rem;
       font-weight: 600;
-      letter-spacing: -0.02em;
     }
 
     .toolbar {
@@ -64,7 +63,6 @@
       cursor: pointer;
       font-size: 0.85rem;
       font-weight: 500;
-      transition: background-color 0.15s ease, border-color 0.15s ease;
     }
 
     button:hover {
@@ -80,7 +78,6 @@
 
     button.primary:hover {
       background-color: var(--accent-hover);
-      border-color: var(--accent-hover);
     }
 
     button.danger {
@@ -91,13 +88,15 @@
       background-color: rgba(239, 68, 68, 0.1);
     }
 
-    .modules-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    /* Container flexível para alinhar módulos de larguras variadas sem travar o layout */
+    .modules-container {
+      display: flex;
+      flex-wrap: wrap;
       gap: 20px;
-      align-items: start;
+      align-items: flex-start;
     }
 
+    /* O módulo agora usa a largura definida no objeto (widthPx) */
     .module-card {
       background-color: var(--card-bg);
       border: 1px solid var(--border-color);
@@ -106,8 +105,9 @@
       display: flex;
       flex-direction: column;
       gap: 16px;
-      width: 100%;
-      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      box-sizing: border-box;
+      flex-shrink: 0;
     }
 
     .module-header {
@@ -115,6 +115,7 @@
       justify-content: space-between;
       align-items: center;
       gap: 8px;
+      flex-wrap: wrap;
     }
 
     .module-header input.module-title {
@@ -124,7 +125,7 @@
       font-size: 1.1rem;
       font-weight: 600;
       flex: 1;
-      min-width: 0;
+      min-width: 100px;
       outline: none;
       border-bottom: 1px dashed transparent;
     }
@@ -133,48 +134,62 @@
       border-bottom-color: var(--accent-color);
     }
 
+    .width-control {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .width-control input {
+      width: 60px !important;
+      text-align: center;
+    }
+
     .table-container {
       width: 100%;
-      overflow-x: hidden;
+      overflow-x: auto; /* Permite rolagem apenas no módulo se a tabela exceder o tamanho fixo */
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
       font-size: 0.8rem;
-      table-layout: auto;
     }
 
     th, td {
-      padding: 6px 2px;
+      padding: 6px 4px;
       text-align: center;
       border-bottom: 1px solid var(--border-color);
       vertical-align: middle;
+      white-space: nowrap;
     }
 
     th {
       font-weight: 600;
       color: var(--text-muted);
-      background-color: rgba(0,0,0,0.2);
+      background-color: rgba(0, 0, 0, 0.25);
     }
 
     th.col-item, td.col-item {
       text-align: left;
-      width: auto;
+      min-width: 120px;
+      white-space: normal;
     }
 
     .weight-col-header {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 3px;
-      width: 100%;
+      gap: 4px;
+      min-width: 100px;
     }
 
     .weight-title-row {
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: space-between;
       gap: 2px;
       width: 100%;
     }
@@ -183,12 +198,12 @@
       width: 100%;
       min-width: 0;
       text-align: center;
-      padding: 4px 2px;
+      font-weight: 600;
     }
 
     .btn-icon {
       padding: 2px 4px;
-      font-size: 0.7rem;
+      font-size: 0.75rem;
       line-height: 1;
     }
 
@@ -198,6 +213,7 @@
       align-items: center;
       gap: 4px;
       padding: 4px 0;
+      min-width: 24px;
     }
 
     .collapsed-col-header .col-name-label {
@@ -214,20 +230,20 @@
     .collapsed-cell {
       background-color: rgba(0, 0, 0, 0.15);
       color: var(--text-muted);
-      font-size: 0.7rem;
+      font-size: 0.75rem;
+      min-width: 24px;
     }
 
     .draw-box {
       background-color: rgba(0, 0, 0, 0.4);
       border: 1px solid var(--border-color);
       border-radius: 4px;
-      padding: 3px 2px;
+      padding: 4px 6px;
       width: 100%;
       font-size: 0.7rem;
       display: flex;
       flex-direction: column;
-      gap: 1px;
-      margin-top: 2px;
+      gap: 2px;
     }
 
     .draw-box .res-num {
@@ -277,7 +293,8 @@
       position: relative;
       z-index: 1;
       overflow: hidden;
-      padding: 4px 2px;
+      padding: 4px 6px;
+      min-width: 60px;
     }
 
     .weight-bar {
@@ -303,7 +320,8 @@
       color: var(--text-muted);
       font-weight: 500;
       font-size: 0.75rem;
-      padding: 0 4px;
+      padding: 0 6px;
+      white-space: nowrap;
     }
 
     .selected-row {
@@ -313,19 +331,18 @@
     .add-btn-container {
       display: flex;
       justify-content: space-between;
-      margin-top: 4px;
       gap: 8px;
     }
 
     .btn-sm {
-      padding: 2px 5px;
+      padding: 3px 8px;
       font-size: 0.75rem;
       white-space: nowrap;
     }
 
     .btn-draw {
       width: 100%;
-      padding: 3px 0;
+      padding: 4px 0;
       font-size: 0.75rem;
     }
 
@@ -346,36 +363,37 @@
     </div>
   </header>
 
-  <div class="modules-grid" id="modulesGrid"></div>
+  <div class="modules-container" id="modulesContainer"></div>
 
   <script>
     let state = {
       modules: [
         {
           id: 'm1',
-          title: 'Atividades',
+          title: 'Geral',
+          widthPx: 300,
           weightCols: [
-            { id: 'w1', name: 'Geral', collapsed: false, lastDraw: { num: '-', item: '-', selectedItemId: null } }
+            { id: 'w1', name: 'casa dia', collapsed: false, lastDraw: { num: 24, item: 'taskcelular', selectedItemId: 'i3' } }
           ],
           items: [
-            { id: 'i1', name: 'concursos', weights: { w1: 2 } },
-            { id: 'i2', name: 'financeiro', weights: { w1: 1 } },
-            { id: 'i3', name: '3d printer', weights: { w1: 1 } },
-            { id: 'i4', name: 'quarto', weights: { w1: 3 } },
-            { id: 'i5', name: 'esteira', weights: { w1: 2 } }
+            { id: 'i1', name: 'others', weights: { w1: 2 } },
+            { id: 'i2', name: '3d printer', weights: { w1: 0 } },
+            { id: 'i3', name: 'taskcelular', weights: { w1: 12 } },
+            { id: 'i4', name: 'madeiras', weights: { w1: 8 } }
           ]
         },
         {
           id: 'm2',
-          title: 'Tempo (min)',
+          title: 'Others',
+          widthPx: 550,
           weightCols: [
-            { id: 'w1', name: 'Dia', collapsed: false, lastDraw: { num: '-', item: '-', selectedItemId: null } },
-            { id: 'w2', name: 'Noite', collapsed: false, lastDraw: { num: '-', item: '-', selectedItemId: null } }
+            { id: 'w1', name: 'Peso', collapsed: false, lastDraw: { num: '-', item: '-', selectedItemId: null } },
+            { id: 'w2', name: 'noite', collapsed: false, lastDraw: { num: '-', item: '-', selectedItemId: null } }
           ],
           items: [
-            { id: 'i1', name: '15 min', weights: { w1: 5, w2: 2 } },
-            { id: 'i2', name: '30 min', weights: { w1: 10, w2: 5 } },
-            { id: 'i3', name: '45 min', weights: { w1: 3, w2: 8 } }
+            { id: 'i1', name: 'plantas minimo 20 min', weights: { w1: 1, w2: 0 } },
+            { id: 'i2', name: 'leitura manual megane', weights: { w1: 1, w2: 1 } },
+            { id: 'i3', name: 'fio dental', weights: { w1: 2, w2: 2 } }
           ]
         }
       ]
@@ -386,16 +404,24 @@
     }
 
     function render() {
-      const container = document.getElementById('modulesGrid');
+      const container = document.getElementById('modulesContainer');
       container.innerHTML = '';
 
       state.modules.forEach(mod => {
         const card = document.createElement('div');
         card.className = 'module-card';
+        card.style.width = `${mod.widthPx || 350}px`;
 
         let html = `
           <div class="module-header">
             <input type="text" class="module-title" value="${escapeHtml(mod.title)}" onchange="updateModuleTitle('${mod.id}', this.value)" placeholder="Nome do Módulo">
+            
+            <div class="width-control">
+              <label>Largura:</label>
+              <input type="number" value="${mod.widthPx || 350}" step="10" min="200" max="1500" onchange="updateModuleWidth('${mod.id}', this.value)">
+              <span>px</span>
+            </div>
+
             <button class="danger btn-sm" onclick="deleteModule('${mod.id}')">Excluir</button>
           </div>
         `;
@@ -423,7 +449,7 @@
                   ${mod.weightCols.map(col => {
                     if (col.collapsed) {
                       return `
-                        <th style="width: 28px; vertical-align: top;">
+                        <th style="width: 24px; vertical-align: top;">
                           <div class="collapsed-col-header">
                             <button class="btn-icon" title="Expandir coluna" onclick="toggleColCollapse('${mod.id}', '${col.id}')">👁️</button>
                             <span class="col-name-label">${escapeHtml(col.name)}</span>
@@ -450,7 +476,7 @@
                       <th style="vertical-align: bottom; padding-bottom: 8px; width: 30px;">Cum</th>
                     `;
                   }).join('')}
-                  <th style="width: 20px;"></th>
+                  <th style="width: 24px;"></th>
                 </tr>
               </thead>
               <tbody>
@@ -504,6 +530,14 @@
       });
     }
 
+    function updateModuleWidth(modId, val) {
+      const mod = state.modules.find(m => m.id === modId);
+      if (mod) {
+        mod.widthPx = Math.max(200, Number(val) || 350);
+        render();
+      }
+    }
+
     function toggleColCollapse(modId, colId) {
       const mod = state.modules.find(m => m.id === modId);
       if (mod) {
@@ -526,6 +560,7 @@
       state.modules.push({
         id: newModId,
         title: 'Novo Módulo',
+        widthPx: 350,
         weightCols: [{ id: newColId, name: 'Peso', collapsed: false, lastDraw: { num: '-', item: '-', selectedItemId: null } }],
         items: [{ id: generateId(), name: 'Exemplo', weights: { [newColId]: 1 } }]
       });
@@ -576,6 +611,10 @@
           lastDraw: { num: '-', item: '-', selectedItemId: null }
         });
         mod.items.forEach(i => i.weights[newColId] = 0);
+        
+        // Aumenta automaticamente a largura ao adicionar colunas para não espremer
+        mod.widthPx = (mod.widthPx || 350) + 120;
+        
         render();
       }
     }
@@ -589,6 +628,10 @@
         }
         mod.weightCols = mod.weightCols.filter(c => c.id !== colId);
         mod.items.forEach(i => delete i.weights[colId]);
+        
+        // Reduz a largura se desejar ao remover coluna
+        mod.widthPx = Math.max(250, (mod.widthPx || 350) - 120);
+        
         render();
       }
     }
